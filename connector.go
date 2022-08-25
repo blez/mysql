@@ -11,6 +11,7 @@ package mysql
 import (
 	"context"
 	"database/sql/driver"
+	"fmt"
 	"net"
 )
 
@@ -45,6 +46,7 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 		}
 		mc.netConn, err = dial(dctx, mc.cfg.Addr)
 	} else {
+		fmt.Println("dial")
 		nd := net.Dialer{Timeout: mc.cfg.Timeout}
 		mc.netConn, err = nd.DialContext(ctx, mc.cfg.Net, mc.cfg.Addr)
 	}
@@ -61,6 +63,32 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 			mc.netConn = nil
 			return nil, err
 		}
+
+		// socketFile, err := tc.File()
+		// if err != nil {
+		// 	panic(err)
+		// }
+
+		// defer socketFile.Close()
+
+		// fd := int(socketFile.Fd())
+
+		// interval, err := syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPINTVL)
+		// if err != nil {
+		// 	panic(err)
+		// }
+
+		// idle, err := syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPIDLE)
+		// if err != nil {
+		// 	panic(err)
+		// }
+
+		// count, err := syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPCNT)
+		// if err != nil {
+		// 	panic(err)
+		// }
+
+		// fmt.Println("interval", interval, "idle", idle, "count", count)
 	}
 
 	// Call startWatcher for context support (From Go 1.8)
@@ -76,6 +104,8 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 	// Set I/O timeouts
 	mc.buf.timeout = mc.cfg.ReadTimeout
 	mc.writeTimeout = mc.cfg.WriteTimeout
+
+	fmt.Println("TIMEOUTS", mc.buf.timeout, mc.writeTimeout)
 
 	// Reading Handshake Initialization Packet
 	authData, plugin, err := mc.readHandshakePacket()
