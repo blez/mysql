@@ -88,6 +88,23 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 				if err != nil {
 					panic(err)
 				}
+
+				interval, err := syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPINTVL)
+				if err != nil {
+					panic(err)
+				}
+
+				idle, err := syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPIDLE)
+				if err != nil {
+					panic(err)
+				}
+
+				count, err := syscall.GetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPCNT)
+				if err != nil {
+					panic(err)
+				}
+
+				fmt.Println("interval", interval, "idle", idle, "count", count)
 			})
 
 		// socketFile, err := tc.File()
