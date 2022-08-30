@@ -13,6 +13,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"net"
+	"syscall"
 )
 
 type connector struct {
@@ -63,6 +64,31 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 			mc.netConn = nil
 			return nil, err
 		}
+
+		rawConn, err := tc.SyscallConn()
+		if err != nil {
+			panic("on getting raw connection object for keepalive parameter setting")
+		}
+
+		rawConn.Control(
+			func(fdPtr uintptr) {
+				fd := int(fdPtr)
+
+				err := syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPCNT, 3)
+				if err != nil {
+					panic(err)
+				}
+
+				err = syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPINTVL, 3)
+				if err != nil {
+					panic(err)
+				}
+
+				err = syscall.SetsockoptInt(fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPIDLE, 3)
+				if err != nil {
+					panic(err)
+				}
+			})
 
 		// socketFile, err := tc.File()
 		// if err != nil {
